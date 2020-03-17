@@ -1,0 +1,52 @@
+group 'org'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = "org.icoder.Main"
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile(
+            "org.apache.logging.log4j:log4j-core:$log4jVersion",
+            "org.apache.logging.log4j:log4j-api:$log4jVersion",
+            "com.fasterxml.jackson.core:jackson-databind:$jaksonJsonVersion",
+            "com.lmax:disruptor:$disruptorVersion"
+    )
+    testCompile(
+            "junit:junit:$junitVersion",
+            "org.assertj:assertj-core:$assertVersion"
+    )
+}
+
+
+jar {
+    baseName = "tracer"
+    version = "0.1.0"
+    manifest {
+        attributes 'Main-Class': 'org.icoder.Main'
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
+test {
+    scanForTestClasses = true
+    include '**/*Test.class'
+    maxParallelForks = 4
+    testLogging {
+        showStandardStreams = true
+        exceptionFormat "full"
+        events = ["started", "passed", "skipped", "failed", "standard_out", "standard_error"]
+        showExceptions = true
+        showStackTraces = true
+    }
+    afterTest { desc, result ->
+        println "Executing test ${desc.name} [${desc.className}] with result: ${result.resultType}"
+    }
+}
